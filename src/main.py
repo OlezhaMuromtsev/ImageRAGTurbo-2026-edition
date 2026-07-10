@@ -31,10 +31,10 @@ def main():
     unet.blend(retrieve_h)
     unet.set_prompt(text_embedding)
     noiser = Noiser(mean=0.0, std=0.0) # args for noise
-    noised_template = Noiser.gen((32, 32)) # image size
+    noised_template = noiser.gen((32, 32)) # image size
     gen_z = unet.forward(noised_template)
-    visual_decoder = VisualDecoder()
-    result_img = visual_decoder.forward(gen_z).detach().cpu().numpy()
+    discriminator = Discriminator()
+    result_img = discriminator.forward(gen_z).detach().cpu().numpy()
     show_image(result_img)
     if args.save:
         save_image(result_img, args.path)

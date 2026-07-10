@@ -1,0 +1,10 @@
+# it is train config with params for training
+
+train_prompts: # link to DB with prompts for training
+database: # link to DB for RAG
+teacher: # path to load trained teacher
+student: # path to load pretrained student
+
+# loss params
+alpha: 2.5
+beta: 1.0
