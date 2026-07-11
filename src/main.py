@@ -18,7 +18,6 @@ def main():
     parser.add_argument("--db", required=True, help="Vector database for RAG")
     parser.add_argument("--unet", required=True, help="Path to trained UNet model")
     parser.add_argument("--discriminator", required=True, help="Path to trained Discriminator model")
-    parser.add_argument("--adapter", required=True, help="Path to trained adapter")
     parser.add_argument("--save", action="store_true", help="Save generated image")
     parser.add_argument("--path", type=str, default="generated_image.png", 
                         help="Path to save generated image (default: generated_image.png)")
@@ -27,14 +26,12 @@ def main():
     target_prompt = input()
     text_encoder = TextEncoder()
     unet = UNet(args.unet)
-    unet.set_adapter(args.adapter)
     text_embedding = text_encoder.forward(target_prompt)
     rag = RAG(args.db, unet)
     retrieve_h = rag.forward(text_embedding)
     unet.blend(retrieve_h)
     unet.set_prompt(text_embedding)
-    noiser = Noiser(mean=0.0, std=0.0) # args for noise
-    noised_template = noiser.gen((32, 32)) # image size
+    noised_template = torch.rand(32, 32) # size of noised template
     gen_z = unet.forward(noised_template)
     discriminator = Discriminator(args.discriminator)
     result_img = discriminator.forward(gen_z).detach().cpu().numpy()
