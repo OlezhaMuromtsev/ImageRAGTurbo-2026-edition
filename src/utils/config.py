@@ -1,6 +1,7 @@
 import yaml
 from pathlib import Path
 import torch
+from model.train.trainer import Trainer
 
 class Config:
     def __init__(self, path: str | Path):
