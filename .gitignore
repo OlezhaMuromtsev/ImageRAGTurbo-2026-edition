@@ -216,3 +216,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+#models cache and built database
+data/vector_db/
+*.pt
+*.faiss
+
+#Huggingface cache
+huggingface/
+
+# generated images
+generated_image.png
+*.pth
