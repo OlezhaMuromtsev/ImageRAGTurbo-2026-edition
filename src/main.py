@@ -31,6 +31,7 @@ def main():
     text_embedding = text_encoder.forward(target_prompt)
     rag = RAG(args.db)
     retrieve_h = rag.forward(text_embedding)
+<<<<<<< HEAD
     encoder = get_stable_diffusion_encoder()
     bottleneck = get_stable_diffusion_bottleneck(encoder)
     decoder = get_stable_diffusion_decoder(encoder)
@@ -39,6 +40,12 @@ def main():
         bottleneck_output = bottleneck(encoder_output, retrieve=retrieve_h)
         decoder_output = decoder(bottleneck_output)
     result_img = decoder_output.image_tensor.detach().cpu().numpy()
+=======
+    unet.blend(retrieve_h)
+    unet.set_prompt(text_embedding)
+    noised_template = torch.rand(32, 32) # size of noised template
+    result_img = unet.forward(noised_template).detach().cpu().numpy()
+>>>>>>> 1363a98 (added loss functions and fixed main pipeline)
     show_image(result_img)
     if args.save:
         save_image(result_img, args.path)
