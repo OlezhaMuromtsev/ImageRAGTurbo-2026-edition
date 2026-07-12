@@ -30,8 +30,7 @@ def main():
     retrieve_h, latent_z = rag.forward(text_embedding) # latent_z is useless there - it is for train
     unet.blend(retrieve_h)
     unet.set_prompt(text_embedding)
-    noiser = Noiser(mean=0.0, std=0.0) # args for noise
-    noised_template = noiser.gen((32, 32)) # image size
+    noised_template = torch.rand(32, 32)
     gen_z = unet.forward(noised_template)
     discriminator = Discriminator()
     result_img = discriminator.forward(gen_z).detach().cpu().numpy()
