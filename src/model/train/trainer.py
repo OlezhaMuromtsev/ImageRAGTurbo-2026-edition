@@ -1,4 +1,8 @@
-
+from losses import loss_adv_D, loss_adv_G, loss_distill, loss_elpips
+import random
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
 class Trainer:
     def __init__(self, **params):
@@ -40,7 +44,7 @@ class Trainer:
                 score_fake_updated = discriminator.forward(z_s_fake)
                 loss_1 = loss_adv_G(score_fake_updated)
                 loss_2 = loss_distill(z_0_fake, z_0_real)
-                loss_3 = loss_lpips(z_0_fake, z_0_real)
+                loss_3 = loss_elpips(z_0_fake, z_0_real)
                 loss_G = loss_1 + self.alpha_ * loss_2 + self.beta_ * loss_3
                 opt_G.zero_grad()
                 loss_G.backward()
