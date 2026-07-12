@@ -42,7 +42,7 @@ def build_vector_database(
     ])
  
     print(f"Loading dataset {dataset_name} ({subset})...")
-    dataset = load_dataset(dataset_name, subset, split="train")
+    dataset = load_dataset("parquet", data_files={"train": f"hf://datasets/{dataset_name}/{subset}/train-*.parquet"}, split="train")
  
     # Deduplication: avoiding prompt duplication
     seen = set()
