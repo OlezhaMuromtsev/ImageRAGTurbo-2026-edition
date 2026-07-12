@@ -32,9 +32,7 @@ def main():
     unet.blend(retrieve_h)
     unet.set_prompt(text_embedding)
     noised_template = torch.rand(32, 32) # size of noised template
-    gen_z = unet.forward(noised_template)
-    discriminator = Discriminator(args.discriminator)
-    result_img = discriminator.forward(gen_z).detach().cpu().numpy()
+    result_img = unet.forward(noised_template).detach().cpu().numpy()
     show_image(result_img)
     if args.save:
         save_image(result_img, args.path)
