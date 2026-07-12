@@ -1,9 +1,14 @@
 import sys
 import argparse
-from PIL import Image
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+from PIL import Image
+from model.RAG.rag import RAG
+from model.text_encoder.encoder import TextEncoder
+from model.denoiser.bottleneck import get_stable_diffusion_bottleneck
+from model.denoiser.decoder import get_stable_diffusion_decoder
+from model.denoiser.encoder import get_stable_diffusion_encoder
 
 def show_image(img):
     plt.imshow(img)
@@ -16,8 +21,6 @@ def save_image(img, path):
 def main():
     parser = argparse.ArgumentParser(description=" ")
     parser.add_argument("--db", required=True, help="Vector database for RAG")
-    parser.add_argument("--unet", required=True, help="Path to trained UNet model")
-    parser.add_argument("--discriminator", required=True, help="Path to trained Discriminator model")
     parser.add_argument("--save", action="store_true", help="Save generated image")
     parser.add_argument("--path", type=str, default="generated_image.png", 
                         help="Path to save generated image (default: generated_image.png)")
@@ -25,14 +28,17 @@ def main():
     args = parser.parse_args()
     target_prompt = input()
     text_encoder = TextEncoder()
-    unet = UNet(args.unet)
     text_embedding = text_encoder.forward(target_prompt)
-    rag = RAG(args.db, unet)
+    rag = RAG(args.db)
     retrieve_h = rag.forward(text_embedding)
-    unet.blend(retrieve_h)
-    unet.set_prompt(text_embedding)
-    noised_template = torch.rand(32, 32) # size of noised template
-    result_img = unet.forward(noised_template).detach().cpu().numpy()
+    encoder = get_stable_diffusion_encoder()
+    bottleneck = get_stable_diffusion_bottleneck(encoder)
+    decoder = get_stable_diffusion_decoder(encoder)
+    with torch.inference_mode():
+        encoder_output = encoder(text_embedding)
+        bottleneck_output = bottleneck(encoder_output, retrieve=retrieve_h)
+        decoder_output = decoder(bottleneck_output)
+    result_img = decoder_output.image_tensor.detach().cpu().numpy()
     show_image(result_img)
     if args.save:
         save_image(result_img, args.path)
