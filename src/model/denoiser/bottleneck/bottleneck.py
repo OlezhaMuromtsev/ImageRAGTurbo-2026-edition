@@ -44,6 +44,50 @@ class StableDiffusionBottleneck(nn.Module):
             timestep=encoder_output.timestep,
             latent=encoder_output.latent,
         )
+    def rag_blending(
+        self,
+        encoder_output: torch.Tensor,
+        rag_output: torch.Tensor,
+        encoder_weight: float,
+    ):
+        import torch.nn.functional as F
+
+        eps = 1e-6
+
+        batch_size = encoder_output.shape[0]
+        original_shape = encoder_output.shape
+
+        rag_flat = rag_output.flatten(start_dim=1)
+        encoder_flat = encoder_output.flatten(start_dim=1)
+
+        retrieved_unit = F.normalize(rag_flat, dim=1)
+        encoder_unit = F.normalize(encoder_flat, dim=1)
+
+        cosine = torch.sum(
+            retrieved_unit * encoder_unit,
+            dim=1,
+            keepdim=True,
+        )
+
+        cosine = cosine.clamp(-1.0 + eps, 1.0 - eps)
+        omega = torch.acos(cosine)
+        sin_omega = torch.sin(omega)
+
+        encoder_weight = torch.as_tensor(
+            encoder_weight,
+            device=encoder_output.device,
+            dtype=encoder_output.dtype,
+        )
+
+        encoder_weight = encoder_weight.expand(batch_size)
+        encoder_weight = encoder_weight.reshape(batch_size, 1)
+
+        rag_coefficient = torch.sin((1.0 - encoder_weight) * omega) / sin_omega
+        encoder_coefficient = torch.sin(encoder_weight * omega) / sin_omega
+
+        hidden_states_blending = rag_coefficient * rag_flat + encoder_coefficient * encoder_flat
+        #TODO: вопрос численной стабильности не исследовался на случаях вырождения синуса
+        return hidden_states_blending.reshape(original_shape)
 
 
 def get_stable_diffusion_bottleneck(encoder):
