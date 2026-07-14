@@ -10,7 +10,7 @@ import torch
 from datasets import load_dataset
 from diffusers import AutoencoderKL
 from torchvision import transforms
-from src.model.text_encoder.encoder import TextEncoder
+from src.model.text_encoder.text_encoder import TextEncoder
 
 
 MODEL_ID = "sd2-community/stable-diffusion-2-1-base"  # from https://huggingface.co/sd2-community/stable-diffusion-2-1-base
