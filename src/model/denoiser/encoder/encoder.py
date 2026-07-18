@@ -131,17 +131,33 @@ class StableDiffusionEncoder(nn.Module):
 
         return temb
 
-    def forward(self, prompt):
-        if isinstance(prompt, str):
-            prompt = [prompt]
+    def forward(
+            self,
+            text_embedding: torch.Tensor,
+            timestep: torch.Tensor = None,
+            latent: torch.Tensor = None,
+    ):
 
-        batch_size = len(prompt)
+        batch_size = text_embedding.shape[0]
 
-        encoder_hidden_states = self.encode_prompt(prompt)
+        encoder_hidden_states = text_embedding
 
-        timestep = self.create_timestep()
 
-        latent = self.create_latent(batch_size)
+        if latent is None:
+            latent = self.create_latent(batch_size)
+        else:
+            if latent.ndim == 3:
+                latent = latent.unsqueeze(0)
+
+
+        if timestep is None:
+            timestep = self.create_timestep()
+        else:
+            timestep = torch.as_tensor(
+                timestep,
+                device=text_embedding.device,
+            )
+
 
         sample = self.scheduler.scale_model_input(
             latent,

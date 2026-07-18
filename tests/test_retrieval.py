@@ -2,13 +2,22 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # to make work "from src.model..." anywhere
- 
+
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
 from src.model.RAG.rag import RAG
 from src.model.text_encoder.encoder import TextEncoder
 
+
+DB_DIR = PROJECT_ROOT / "data" / "vector_db"
+
 print("Loading encoder and database...")
 enc = TextEncoder()
-rag = RAG("data/vector_db")
+rag = RAG(str(DB_DIR))
  
 print(f"\nIn the database {len(rag.prompts)} entries.")
 print("Database metadata:", rag.meta)
