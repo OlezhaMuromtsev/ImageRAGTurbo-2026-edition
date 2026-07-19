@@ -10,7 +10,7 @@ import torch
 from datasets import load_dataset
 from diffusers import AutoencoderKL
 from torchvision import transforms
-from src.model.text_encoder import TextEncoder
+from src.model.text_encoder.encoder import TextEncoder
 
 
 MODEL_ID = "sd2-community/stable-diffusion-2-1-base"  # from https://huggingface.co/sd2-community/stable-diffusion-2-1-base
@@ -21,9 +21,8 @@ DB_SCHEMA_VERSION = 1
  
 def build_vector_database(
     output_dir: str = "data/vector_db",
-    dataset_name: str = "poloclub/diffusiondb",
-    subset: str = "2m_first_1k",
-    batch_size: int = 4,
+    num_pairs: int = 1000,
+    batch_size: int = 16,
 ):
     os.makedirs(output_dir, exist_ok=True)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -41,10 +40,10 @@ def build_vector_database(
         transforms.ToTensor(),
         transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),  # [0,1] -> [-1,1]
     ])
- 
-    print(f"Loading dataset {dataset_name} ({subset})...")
-    dataset = load_dataset(dataset_name, subset, split="train", trust_remote_code=True)
- 
+
+    print(f"Loading dataset {DATASET_ID}...")
+    dataset = load_dataset(DATASET_ID, split="train")
+
     # Deduplication: avoiding prompt duplication
     seen = set()
     records = []
