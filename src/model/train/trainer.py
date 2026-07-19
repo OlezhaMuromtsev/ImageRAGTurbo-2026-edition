@@ -15,17 +15,15 @@ class Trainer:
         self.sigmas = params['sigmas']
         self.n_steps = params['teacher_steps']
     
-    def get_prompts(): # generator that return sequence of train prompts
-        return []
-    
     def train(self, teacher, student):
+        text_dataset = TextDataset()
         encoder = teacher.get_encoder()
         discriminator = Discriminator(encoder=encoder) 
         opt_D = optim.Adam(discriminator.projections.parameters(), lr=self.lr)
         opt_G = optim.Adam(student.adapter.parameters() + student.decoder.parameters(), lr=self.lr)
         student_steps = self.student_steps 
         for epoch in range(self.epochs_):
-            for prompt in self.get_prompts():
+            for prompt in text_dataset.get_prompts():
                 z_0_real = teacher.forward(prompt) 
                 z_0_fake = student.forward(prompt, steps=student_steps) 
                 s = random.randint(1, self.n_steps) 
