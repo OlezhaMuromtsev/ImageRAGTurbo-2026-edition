@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # to make work "from src.model..." anywhere
  
 from src.model.RAG.rag import RAG
-from src.model.text_encoder.encoder import TextEncoder
+from src.model.text_encoder.text_encoder import TextEncoder
 
 print("Loading encoder and database...")
 enc = TextEncoder()
