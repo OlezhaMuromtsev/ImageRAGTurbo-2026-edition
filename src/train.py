@@ -7,8 +7,6 @@ from utils.config import Config
 def main():
     parser = argparse.ArgumentParser(description=" ")
     parser.add_argument("--config", required=True, help="Path to train config")
-    parser.add_argument("--path", type=str, default="model.pth", 
-                        help="Path to save trained model")
     parser.add_argument("--student_path", type=str, default="S.pth", 
                         help="Path to save trained model")
     parser.add_argument("--discriminator_path", type=str, default="D.pth", 
