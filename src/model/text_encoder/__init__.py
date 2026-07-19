@@ -1,1 +1,1 @@
-from .encoder import TextEncoder
+from .text_encoder import TextEncoder
