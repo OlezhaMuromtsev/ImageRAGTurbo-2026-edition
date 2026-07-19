@@ -14,6 +14,7 @@ from src.model.text_encoder import TextEncoder
 
 
 MODEL_ID = "sd2-community/stable-diffusion-2-1-base"  # from https://huggingface.co/sd2-community/stable-diffusion-2-1-base
+DATASET_ID = "yhshin1020/coco-img-caption-pairs"
 IMAGE_SIZE = 512  # 512x512x3 -> latent 4x64x64 for VAE
 DB_SCHEMA_VERSION = 1
 
@@ -48,19 +49,21 @@ def build_vector_database(
     seen = set()
     records = []
     for ex in dataset:
-        p = ex["prompt"].strip() if isinstance(ex["prompt"], str) else ""
-        if not p or p in seen:
+        cap = ex["caption"].strip() if isinstance(ex["caption"], str) else ""
+        if not cap or cap in seen:
             continue
-        seen.add(p)
-        records.append((p, ex["image"]))
-    prompts = [p for p, _ in records]
+        seen.add(cap)
+        records.append((cap, ex["image"]))
+        if len(records) >= num_pairs:
+            break
+    prompts = [c for c, _ in records]
     print(f"Preparing database with {len(records)} unique text-image pairs...")
- 
+
     query_chunks, cond_chunks, latent_chunks = [], [], []
- 
+
     for i in range(0, len(records), batch_size):
         batch = records[i:i + batch_size]
-        batch_prompts = [p for p, _ in batch]
+        batch_prompts = [c for c, _ in batch]
         batch_images = [img.convert("RGB") for _, img in batch]
         query, cond = text_encoder(batch_prompts)  # 2 text views: (B, D), (B, 77, D)
 
@@ -103,7 +106,7 @@ def build_vector_database(
         "latent_shape": list(latents.shape[1:]),
         "image_size": IMAGE_SIZE,
         "vae_scaling_factor": float(vae.config.scaling_factor),
-        "dataset": f"{dataset_name}/{subset}",
+        "dataset": DATASET_ID,
     }
     with open(os.path.join(output_dir, "meta.json"), "w") as f:
         json.dump(meta, f, indent=2)

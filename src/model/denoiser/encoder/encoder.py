@@ -70,27 +70,6 @@ class StableDiffusionEncoder(nn.Module):
         self.width = width
         self.num_inference_steps = num_inference_steps
 
-    def encode_prompt(self, prompt):
-        text_inputs = self.tokenizer(
-            prompt,
-            padding="max_length",
-            max_length=self.tokenizer.model_max_length,
-            truncation=True,
-            return_tensors="pt",
-        )
-
-        input_ids = text_inputs.input_ids.to(self.unet.device)
-
-        encoder_hidden_states = self.text_encoder(
-            input_ids
-        ).last_hidden_state
-
-        encoder_hidden_states = encoder_hidden_states.to(
-            dtype=self.unet.dtype
-        )
-
-        return encoder_hidden_states
-
     def create_latent(self, batch_size):
         latent_height = self.height // self.pipeline.vae_scale_factor
         latent_width = self.width // self.pipeline.vae_scale_factor
@@ -172,13 +151,6 @@ class StableDiffusionEncoder(nn.Module):
             timestep,
         )
 
-        encoder_hidden_states = (
-            self.unet.process_encoder_hidden_states(
-                encoder_hidden_states=encoder_hidden_states,
-                added_cond_kwargs=None,
-            )
-        )
-
         hidden_states = self.conv_in(sample)
 
         down_block_res_samples = (hidden_states,)
@@ -227,7 +199,6 @@ def get_stable_diffusion_encoder():
     ).to(device)
 
     pipeline.unet.eval()
-    pipeline.text_encoder.eval()
     pipeline.vae.eval()
     return StableDiffusionEncoder(
             pipeline,
